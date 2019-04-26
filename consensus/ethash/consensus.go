@@ -24,6 +24,10 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/sero-cash/go-sero/common/hexutil"
+
+	"github.com/sero-cash/go-czero-import/cpt"
+
 	"github.com/sero-cash/go-sero/crypto"
 
 	"github.com/sero-cash/go-czero-import/keys"
@@ -347,7 +351,26 @@ func (ethash *Ethash) VerifySeal(chain consensus.ChainReader, header *types.Head
 	if ethash.config.PowMode == ModeTest {
 		size = 32 * 1024
 	}
-	digest, result := hashimotoLight(size, cache.cache, header.HashNoNonce().Bytes(), header.Nonce.Uint64(), header.Number.Uint64())
+
+	var digest []byte
+	var result []byte
+	if number >= cpt.SIP3 {
+		dataset := ethash.dataset_async(number)
+		if dataset.generated() {
+			digest, result = progpowFull(dataset.dataset, header.HashNoNonce().Bytes(), header.Nonce.Uint64(), number)
+		} else {
+			digest, result = progpowLightWithoutCDag(size, cache.cache, header.HashNoNonce().Bytes(), header.Nonce.Uint64(), number)
+		}
+		fmt.Printf(
+			"header:%v ,nonce:%v ,number:%v ,digest:%v \n",
+			hexutil.Encode(header.HashNoNonce().Bytes()),
+			header.Nonce.Uint64(),
+			number,
+			hexutil.Encode(digest),
+		)
+	} else {
+		digest, result = hashimotoLight(size, cache.cache, header.HashNoNonce().Bytes(), header.Nonce.Uint64(), number)
+	}
 	// Caches are unmapped in a finalizer. Ensure that the cache stays live
 	// until after the call to hashimotoLight so it's not unmapped while being used.
 	runtime.KeepAlive(cache)
