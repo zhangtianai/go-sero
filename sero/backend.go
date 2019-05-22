@@ -161,10 +161,6 @@ func New(ctx *node.ServiceContext, config *Config) (*Sero, error) {
 		}
 		state2.InitLState(state_bc)
 	}
-	state_bc := &core.State1BlockChain{
-		sero.blockchain,
-	}
-	state2.InitLState(state_bc)
 
 	if err != nil {
 		return nil, err
