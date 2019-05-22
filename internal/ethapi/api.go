@@ -349,7 +349,9 @@ func (s *PrivateAccountAPI) NewAccount(password string) (address.AccountAddress,
 		return address.AccountAddress{}, err
 	}
 
-	lstate.CurrentLState().AddAccount(acc.Tk.ToUint512())
+	if lst := lstate.CurrentLState(); lst != nil {
+		lstate.CurrentLState().AddAccount(acc.Tk.ToUint512())
+	}
 
 	if zconfig.Is_Dev() {
 		fetchKeystore(s.am).TimedUnlock(acc, password, 0)
