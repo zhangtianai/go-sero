@@ -289,7 +289,7 @@ func calcDifficultyAutumnTwilight(time uint64, parent *types.Header) *big.Int {
 		x.Set(params.MinimumDifficulty)
 	}
 	if parent.Number.Uint64()+1 == cpt.SIP3 {
-		x.Mul(big.NewInt(10), big.NewInt(9))
+		x.Exp(big.NewInt(10), big.NewInt(9), nil)
 	}
 	return x
 }
