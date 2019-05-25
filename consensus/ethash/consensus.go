@@ -429,8 +429,6 @@ var (
 	big100  = big.NewInt(100)
 	oneSero = new(big.Int).Mul(big.NewInt(10), base)
 
-	lReward = new(big.Int).Mul(big.NewInt(220), base)
-	hReward = new(big.Int).Mul(big.NewInt(445), base)
 
 	oriReward    = new(big.Int).Mul(big.NewInt(66773505743), big.NewInt(1000000000))
 	interval     = big.NewInt(8294400)
@@ -440,11 +438,11 @@ var (
 	difficultyL3 = big.NewInt(4000000000)
 	difficultyL4 = big.NewInt(17000000000)
 
-	difficultyL5, _ = new(big.Int).SetString("", 10)
-	difficultyL6, _ = new(big.Int).SetString("", 10)
+	lReward = new(big.Int).Mul(big.NewInt(176), base)
+	hReward = new(big.Int).Mul(big.NewInt(445), base)
 
-	argA, _ = new(big.Int).SetString("828424153166421", 10)
-	argB, _ = new(big.Int).SetString("21304123711340200000", 10)
+	argA, _ = new(big.Int).SetString("2022556390977440", 10)
+	argB, _ = new(big.Int).SetString("16184210526315800000", 10)
 
 	teamRewardPool      = common.BytesToAddress(crypto.Keccak512([]byte{1}))
 	communityRewardPool = common.BytesToAddress(crypto.Keccak512([]byte{2}))
