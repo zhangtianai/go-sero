@@ -581,6 +581,10 @@ func accumulateRewardsV3(statedb *state.StateDB, header *types.Header) *big.Int 
 		reward = new(big.Int).Set(hReward)
 	}
 
+	if header.Licr.C != 0 {
+		reward = new(big.Int)
+	}
+
 	i := new(big.Int).Add(new(big.Int).Div(new(big.Int).Sub(header.Number, halveNimber), interval), big1)
 	reward.Div(reward, new(big.Int).Exp(big2, i, nil))
 
