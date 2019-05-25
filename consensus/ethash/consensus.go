@@ -404,7 +404,7 @@ var code = common.Hex2Bytes("6080604052600436106100da5763ffffffff7c0100000000000
 // Finalize implements consensus.Engine, accumulating the block rewards,
 // setting the final state and assembling the block.
 func (ethash *Ethash) Finalize(chain consensus.ChainReader, header *types.Header, stateDB *state.StateDB, txs []*types.Transaction, receipts []*types.Receipt, gasReward uint64) (*types.Block, error) {
-	if header.Number.Uint64() == V2Number {
+	if header.Number.Uint64() == cpt.SIP1 {
 		stateDB.SetBalance(state.EmptyAddress, "SERO", new(big.Int))
 	}
 
@@ -424,12 +424,13 @@ func (ethash *Ethash) Finalize(chain consensus.ChainReader, header *types.Header
 	return types.NewBlock(header, txs, receipts), nil
 }
 
-const V2Number = uint64(130000)
-
 var (
 	base    = big.NewInt(1e+17)
 	big100  = big.NewInt(100)
 	oneSero = new(big.Int).Mul(big.NewInt(10), base)
+
+	lReward = new(big.Int).Mul(big.NewInt(220), base)
+	hReward = new(big.Int).Mul(big.NewInt(445), base)
 
 	oriReward    = new(big.Int).Mul(big.NewInt(66773505743), big.NewInt(1000000000))
 	interval     = big.NewInt(8294400)
@@ -438,6 +439,12 @@ var (
 	difficultyL2 = big.NewInt(1700000000)
 	difficultyL3 = big.NewInt(4000000000)
 	difficultyL4 = big.NewInt(17000000000)
+
+	difficultyL5, _ = new(big.Int).SetString("", 10)
+	difficultyL6, _ = new(big.Int).SetString("", 10)
+
+	argA, _ = new(big.Int).SetString("828424153166421", 10)
+	argB, _ = new(big.Int).SetString("21304123711340200000", 10)
 
 	teamRewardPool      = common.BytesToAddress(crypto.Keccak512([]byte{1}))
 	communityRewardPool = common.BytesToAddress(crypto.Keccak512([]byte{2}))
@@ -451,7 +458,9 @@ var (
 func accumulateRewards(config *params.ChainConfig, statedb *state.StateDB, header *types.Header, gasReward uint64) {
 
 	var reward *big.Int
-	if header.Number.Uint64() >= V2Number {
+	if header.Number.Uint64() >= cpt.SIP3 {
+		reward = accumulateRewardsV3(statedb, header)
+	} else if header.Number.Uint64() >= cpt.SIP1 {
 		reward = accumulateRewardsV2(statedb, header)
 	} else {
 		reward = accumulateRewardsV1(config, statedb, header)
@@ -512,7 +521,7 @@ func accumulateRewardsV1(config *params.ChainConfig, statedb *state.StateDB, hea
 }
 
 func accumulateRewardsV2(statedb *state.StateDB, header *types.Header) *big.Int {
-	rewardStd := new(big.Int).Set(oriReward)
+	rewardStd := new(big.Int).Mul(big.NewInt(66773505743), big.NewInt(1000000000))
 	if header.Number.Uint64() >= halveNimber.Uint64() {
 		i := new(big.Int).Add(new(big.Int).Div(new(big.Int).Sub(header.Number, halveNimber), interval), big1)
 		rewardStd.Div(rewardStd, new(big.Int).Exp(big2, i, nil))
@@ -558,6 +567,37 @@ func accumulateRewardsV2(statedb *state.StateDB, header *types.Header) *big.Int 
 		},
 		}
 		statedb.GetZState().AddTxOut(communityAddress, assetCommunity)
+	}
+	return reward
+}
+
+func accumulateRewardsV3(statedb *state.StateDB, header *types.Header) *big.Int {
+	diff := new(big.Int).Div(header.Difficulty, big.NewInt(1000000000))
+	reward := new(big.Int).Add(new(big.Int).Mul(argA, diff), argB)
+
+	if reward.Cmp(lReward) < 0 {
+		reward = new(big.Int).Set(lReward)
+	} else if reward.Cmp(hReward) > 0 {
+		reward = new(big.Int).Set(hReward)
+	}
+
+	i := new(big.Int).Add(new(big.Int).Div(new(big.Int).Sub(header.Number, halveNimber), interval), big1)
+	reward.Div(reward, new(big.Int).Exp(big2, i, nil))
+
+	if statedb == nil {
+		return reward
+	}
+	statedb.AddBalance(teamRewardPool, "SERO", new(big.Int).Div(reward, big.NewInt(5)))
+
+	if header.Number.Uint64()%5000 == 0 {
+		balance := statedb.GetBalance(teamRewardPool, "SERO")
+		statedb.SubBalance(teamRewardPool, "SERO", balance)
+		assetTeam := assets.Asset{Tkn: &assets.Token{
+			Currency: *common.BytesToHash(common.LeftPadBytes([]byte("SERO"), 32)).HashToUint256(),
+			Value:    utils.U256(*balance),
+		},
+		}
+		statedb.GetZState().AddTxOut(teamAddress, assetTeam)
 	}
 	return reward
 }
