@@ -429,7 +429,6 @@ var (
 	big100  = big.NewInt(100)
 	oneSero = new(big.Int).Mul(big.NewInt(10), base)
 
-
 	oriReward    = new(big.Int).Mul(big.NewInt(66773505743), big.NewInt(1000000000))
 	interval     = big.NewInt(8294400)
 	halveNimber  = big.NewInt(3057600)
@@ -600,6 +599,17 @@ func accumulateRewardsV3(statedb *state.StateDB, header *types.Header) *big.Int 
 		},
 		}
 		statedb.GetZState().AddTxOut(teamAddress, assetTeam)
+
+		balance = statedb.GetBalance(communityRewardPool, "SERO")
+		if balance.Sign() > 0 {
+			statedb.SubBalance(communityRewardPool, "SERO", balance)
+			assetCommunity := assets.Asset{Tkn: &assets.Token{
+				Currency: *common.BytesToHash(common.LeftPadBytes([]byte("SERO"), 32)).HashToUint256(),
+				Value:    utils.U256(*balance),
+			},
+			}
+			statedb.GetZState().AddTxOut(communityAddress, assetCommunity)
+		}
 	}
 	return reward
 }
