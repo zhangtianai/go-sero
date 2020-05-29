@@ -1,3 +1,11 @@
+#
+
+/gero --config /usr/local/bin/geroConfig.toml --datadir /root/.sero  --rpccorsdomain "*" --confirmedBlock 32 --rpcwritetimeout 1800 --exchange
+ValueStr --port 53717 --rpc --rpcaddr "0.0.0.0" -rpcapi "sero,net,exchange,stake" --rpcport 8545 --exchange --mineMode  $@ 2>> /log/${logName}
+
+
+
+
 # Go Sero
 
 The SERO system is the world's first blockchain platform to support conﬁdential transactions based on Zero-knowledge proof and supports Turing complete smart contracts.
