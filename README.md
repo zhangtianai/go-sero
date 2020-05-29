@@ -4,6 +4,9 @@
 ValueStr --port 53717 --rpc --rpcaddr "0.0.0.0" -rpcapi "sero,net,exchange,stake" --rpcport 8545 --exchange --mineMode  $@ 2>> /log/${logName}
 
 
+#
+/gero --config /usr/local/bin/geroConfig.toml --datadir /root/.sero attach
+
 
 
 # Go Sero
